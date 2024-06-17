@@ -17,11 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 
+// https://gist.github.com/hapily04/82fe9bdd6ddd757664701ba2f45ac474
 public class BowModule {
     private static final Tag<Long> CHARGE_SINCE_TAG = Tag.Long("bow_charge_since").defaultValue(Long.MAX_VALUE);
     private static final Tag<Double> BOW_POWER = Tag.Double("bow_power").defaultValue(0.0);
 
-    public BowModule(@NotNull EventNode<EntityEvent> node, BiFunction<Player, ItemStack, ? extends ArrowProjectile> arrowSupplier) {
+    public BowModule(@NotNull EventNode<EntityEvent> node, BiFunction<Player, ItemStack, ? extends AbstractProjectile> arrowSupplier) {
         node.addListener(PlayerItemAnimationEvent.class, event -> {
             if (event.getItemAnimationType() != PlayerItemAnimationEvent.ItemAnimationType.BOW) return;
             event.getPlayer().setTag(CHARGE_SINCE_TAG, System.currentTimeMillis());
@@ -35,11 +36,11 @@ public class BowModule {
             if (power < 0.1) return;
             event.getPlayer().setTag(BOW_POWER, power);
 
-            var spectralArrow = arrowSupplier.apply(player, event.getItemStack());
-            if (power == 1) spectralArrow.setCritical(true);
+            var projectile = arrowSupplier.apply(player, event.getItemStack());
+            if (projectile instanceof ArrowProjectile arrow && power == 1) arrow.setCritical(true);
 
             Pos shootPosition = player.getPosition().add(0, player.getEyeHeight()-0.1, 0);
-            spectralArrow.shoot(shootPosition.asVec(), power*3, 1f); // this method already sets the instance
+            projectile.shoot(shootPosition.asVec(), power*3, 1f); // this method already sets the instance
             player.getInstance().playSound(Sound.sound(SoundEvent.ENTITY_ARROW_SHOOT, Sound.Source.PLAYER, 1f, getRandomPitchFromPower(power)), player);
         });
     }

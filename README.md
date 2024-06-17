@@ -19,7 +19,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/AtlasEngineCa/AtlasProjectiles">
-    <img src=".github/icon.png" alt="Logo" width="180" height="180">
+    <img src=".github/logo2.png" alt="Logo" width="180" height="180">
   </a>
 
   <h3 align="center"></h3>
@@ -66,7 +66,7 @@ repositories {
 Add the library as a dependency
 ```
 dependencies {
-    implementation("net.worldseed.multipart:WorldSeedEntityEngine:<version>")
+    implementation("ca.atlasengine:atlas-projectiles:<version>")
 }
 ```
 

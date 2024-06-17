@@ -19,7 +19,7 @@ repositories {
 publishing {
     publications.create<MavenPublication>("maven") {
         groupId = "ca.atlasengine"
-        artifactId = "minestom-projectiles"
+        artifactId = "atlas-projectiles"
         version = "1.0.0"
 
         from(components["java"])

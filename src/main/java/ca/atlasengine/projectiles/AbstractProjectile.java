@@ -1,6 +1,5 @@
 package ca.atlasengine.projectiles;
 
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerFlag;
 import net.minestom.server.collision.Aerodynamics;
 import net.minestom.server.collision.CollisionUtils;
@@ -13,7 +12,6 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityTickEvent;
-import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.utils.chunk.ChunkCache;
