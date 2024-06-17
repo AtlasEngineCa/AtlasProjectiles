@@ -37,17 +37,21 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 This is a library to add projectiles.
-Currently support Projectiles:
+Currently support projectiles:
 - Arrows
 - Fireballs
 - Items (snowball, enderpearl, etc)
 
+The goal is to make the projectiles act similarly to vanilla, but not all projectiles will be identical.
 Contributions are welcome!
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
 A full, runnable example server can be found [here](https://github.com/AtlasEngineCa/AtlasProjectiles/blob/main/src/test/java/Main.java)
+
+## Credits
+- [hapily04](https://github.com/hapily04) Initial bow and arrow projectile code
 
 ### Adding as a dependency
 
