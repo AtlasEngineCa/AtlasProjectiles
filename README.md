@@ -41,6 +41,7 @@ Currently support projectiles:
 - Arrows
 - Fireballs
 - Items (snowball, enderpearl, etc)
+- Shulker Bullets
 
 The goal is to make the projectiles act similarly to vanilla, but not all projectiles will be identical.
 Contributions are welcome!
