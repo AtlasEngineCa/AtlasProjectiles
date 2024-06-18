@@ -1,6 +1,7 @@
 import ca.atlasengine.projectiles.BowModule;
 import ca.atlasengine.projectiles.entities.ArrowProjectile;
 import ca.atlasengine.projectiles.entities.FireballProjectile;
+import ca.atlasengine.projectiles.entities.FollowProjectile;
 import ca.atlasengine.projectiles.entities.ThrownItemProjectile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -65,7 +66,10 @@ public class Main {
                 if (!event.isFirstSpawn()) return;
                 final Player player = event.getPlayer();
 
-                var bow = ItemStack.builder(Material.BOW).set(ItemComponent.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW))).build();
+                var bow = ItemStack.builder(Material.BOW)
+                        .set(ItemComponent.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW)))
+                        .build();
+
                 player.setItemInMainHand(bow);
 
                 player.setGameMode(GameMode.CREATIVE);
@@ -81,7 +85,7 @@ public class Main {
                 player.eventNode().addListener(PlayerUseItemEvent.class, e -> {
                     if (e.getHand() != Player.Hand.MAIN) return;
                     if (e.getItemStack().material() == Material.FIRE_CHARGE) {
-                        new ThrownItemProjectile(EntityType.SNOWBALL, e.getPlayer()).shoot(e.getPlayer().getPosition().add(0, e.getPlayer().getEyeHeight(), 0).asVec(), 1, 1);
+                        new FollowProjectile(EntityType.SNOWBALL, e.getPlayer(), e.getPlayer(), 0.04f, 0.001f).shoot(e.getPlayer().getPosition().add(0, e.getPlayer().getEyeHeight(), 0).asVec(), 1, 1);
                     }
                 });
 

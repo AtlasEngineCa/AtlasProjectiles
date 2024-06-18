@@ -14,18 +14,26 @@ import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.network.packet.server.play.ParticlePacket;
-import net.minestom.server.particle.Particle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class ThrownItemProjectile extends AbstractProjectile {
+public class FollowProjectile extends AbstractProjectile {
+    private final Entity target;
+    private final float attractionAcceleration;
+    private final float attractionVelocity;
+
     boolean inBlock = false;
 
-    public ThrownItemProjectile(EntityType type, Entity shooter) {
+    private long ticks = 0;
+
+    public FollowProjectile(EntityType type, Entity shooter, Entity target, float attractionVelocity, float attractionAcceleration) {
         super(type, shooter);
+        setNoGravity(true);
+        this.target = target;
+        this.attractionVelocity = attractionVelocity;
+        this.attractionAcceleration = attractionAcceleration;
     }
 
     @Override
@@ -37,6 +45,13 @@ public class ThrownItemProjectile extends AbstractProjectile {
         final Pos posNow = getPosition();
 
         checkEntityCollision(posBefore, posNow);
+
+        ticks++;
+    }
+
+    @Override
+    public long getAliveTicks() {
+        return ticks;
     }
 
     @Override
@@ -111,9 +126,12 @@ public class ThrownItemProjectile extends AbstractProjectile {
     }
 
     protected @NotNull Vec updateVelocity(@NotNull Pos entityPosition, @NotNull Vec currentVelocity, @NotNull Block.@NotNull Getter blockGetter, @NotNull Aerodynamics aerodynamics, boolean positionChanged, boolean entityFlying, boolean entityOnGround, boolean entityNoGravity) {
-        double x = currentVelocity.x();
-        double y = currentVelocity.y() - 0.03;
-        double z = currentVelocity.z();
+        Vec directionVector = entityPosition.sub(target.getPosition().add(0, target.getEyeHeight(), 0)).asVec().normalize().mul(attractionVelocity + attractionAcceleration * this.getAliveTicks());
+
+        double x = currentVelocity.x() - directionVector.x();
+        double y = currentVelocity.y() - directionVector.y();
+        double z = currentVelocity.z() - directionVector.z();
+
         return new Vec(Math.abs(x) < 1.0E-6 ? 0.0 : x, Math.abs(y) < 1.0E-6 ? 0.0 : y, Math.abs(z) < 1.0E-6 ? 0.0 : z);
     }
 }
