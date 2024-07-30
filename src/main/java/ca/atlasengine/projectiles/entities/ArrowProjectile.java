@@ -10,6 +10,8 @@ import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
+import net.minestom.server.entity.metadata.projectile.AbstractArrowMeta;
+import net.minestom.server.entity.metadata.projectile.ArrowMeta;
 import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityShootEvent;
@@ -35,6 +37,9 @@ public class ArrowProjectile extends AbstractProjectile {
 
     public void setCritical(boolean critical) {
         this.critical = critical;
+        if (getEntityMeta() instanceof AbstractArrowMeta arrowMeta) {
+            arrowMeta.setCritical(true);
+        }
     }
 
     public ArrowProjectile(EntityType type, Entity shooter) {
