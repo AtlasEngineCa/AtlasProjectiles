@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractProjectile extends Entity implements Projectile {
     protected final Entity shooter;
-    private PhysicsResult previousPhysicsResult;
+    protected PhysicsResult previousPhysicsResult;
 
     public AbstractProjectile(EntityType type, Entity shooter) {
         super(type);
