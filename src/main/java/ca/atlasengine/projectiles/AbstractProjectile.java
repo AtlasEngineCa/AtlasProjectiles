@@ -1,10 +1,7 @@
 package ca.atlasengine.projectiles;
 
 import net.minestom.server.ServerFlag;
-import net.minestom.server.collision.Aerodynamics;
-import net.minestom.server.collision.CollisionUtils;
-import net.minestom.server.collision.PhysicsResult;
-import net.minestom.server.collision.ShapeImpl;
+import net.minestom.server.collision.*;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -12,6 +9,8 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityTickEvent;
+import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEvent;
+import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.utils.chunk.ChunkCache;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractProjectile extends Entity implements Projectile {
     protected final Entity shooter;
     protected PhysicsResult previousPhysicsResult;
+    private Pos previousPosition;
 
     public AbstractProjectile(EntityType type, Entity shooter) {
         super(type);
@@ -52,6 +52,7 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         this.gravityTickCount = onGround ? 0 : gravityTickCount + 1;
         if (vehicle != null) return;
 
+        this.previousPosition = position;
         final Block.Getter chunkCache = new ChunkCache(instance, currentChunk, Block.STONE);
         PhysicsResult result = computePhysics(
                 position, velocity.div(ServerFlag.SERVER_TICKS_PER_SECOND),
@@ -60,44 +61,71 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         Chunk finalChunk = ChunkUtils.retrieve(instance, currentChunk, result.newPosition());
         if (!ChunkUtils.isLoaded(finalChunk)) return;
 
-        if (result.hasCollision()) {
-            Block hitBlock = null;
-            Point hitPoint = null;
-            if (result.collisionShapes()[0] instanceof ShapeImpl block) {
-                hitBlock = block.block();
-                hitPoint = result.collisionPoints()[0];
-            }
-            if (result.collisionShapes()[1] instanceof ShapeImpl block) {
-                hitBlock = block.block();
-                hitPoint = result.collisionPoints()[1];
-            }
-            if (result.collisionShapes()[2] instanceof ShapeImpl block) {
-                hitBlock = block.block();
-                hitPoint = result.collisionPoints()[2];
-            }
-
-            if (hitBlock == null) return;
-            handleBlockCollision(hitBlock, hitPoint, position);
-        } else {
-            velocity = result.newVelocity().mul(ServerFlag.SERVER_TICKS_PER_SECOND).mul(0.99);
-        }
-
         onGround = result.isOnGround();
+
+        if (!result.hasCollision()) {
+            velocity = previousPhysicsResult.newVelocity().mul(ServerFlag.SERVER_TICKS_PER_SECOND).mul(0.99);
+        }
 
         refreshPosition(result.newPosition(), true, false);
         if (hasVelocity()) sendPacketToViewers(getVelocityPacket());
     }
 
-    protected void checkEntityCollision(Pos previousPos, Pos currentPos) {
-        var diff = currentPos.sub(previousPos).asVec();
+    protected void callBlockCollision() {
+        if (previousPhysicsResult.hasCollision()) {
+            Block hitBlock = null;
+            Point hitPoint = null;
+            if (previousPhysicsResult.collisionShapes()[0] instanceof ShapeImpl block) {
+                hitBlock = block.block();
+                hitPoint = previousPhysicsResult.collisionPoints()[0];
+            }
+            if (previousPhysicsResult.collisionShapes()[1] instanceof ShapeImpl block) {
+                hitBlock = block.block();
+                hitPoint = previousPhysicsResult.collisionPoints()[1];
+            }
+            if (previousPhysicsResult.collisionShapes()[2] instanceof ShapeImpl block) {
+                hitBlock = block.block();
+                hitPoint = previousPhysicsResult.collisionPoints()[2];
+            }
 
-        PhysicsResult entityResult = CollisionUtils.checkEntityCollisions(instance, boundingBox, previousPos, diff, diff.length(),
+            if (hitBlock == null) return;
+            handleBlockCollision(hitBlock, hitPoint, previousPosition);
+        }
+    }
+
+    protected void callBlockCollisionEvent(@NotNull Pos pos, Block hitBlock) {
+        var e = new ProjectileCollideWithBlockEvent(this, pos, hitBlock);
+        EventDispatcher.call(e);
+    }
+
+    protected boolean callEntityCollisionEvent(@NotNull Pos pos, @NotNull Entity entity) {
+        ProjectileCollideWithEntityEvent e = new ProjectileCollideWithEntityEvent(this, pos, entity);
+        EventDispatcher.call(e);
+        if (!e.isCancelled()) {
+            remove();
+            return true;
+        }
+
+        return false;
+    }
+
+    protected boolean callEntityCollision() {
+        if (previousPhysicsResult == null) return false;
+        var diff = previousPhysicsResult.newPosition().sub(previousPosition).asVec();
+
+        var collidedEntities = CollisionUtils.checkEntityCollisions(instance, boundingBox, previousPosition, diff, diff.length(),
                 entity -> entity != shooter && entity != this, previousPhysicsResult);
 
-        if (entityResult.hasCollision()) {
-            Entity hitEntity = (Entity) entityResult.collisionShapes()[0];
-            handleEntityCollision(hitEntity, entityResult.newPosition(), currentPos);
+        var arr = collidedEntities.stream().sorted().toList();
+        if (!arr.isEmpty()) {
+            for (var collision : arr) {
+                if (handleEntityCollision(collision, previousPhysicsResult.newPosition(), previousPosition)) {
+                    return true;
+                }
+            }
         }
+
+        return false;
     }
 
     protected void updatePosition(long time) {
@@ -108,7 +136,16 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         EventDispatcher.call(new EntityTickEvent(this));
     }
 
-    abstract protected void handleBlockCollision(Block hitBlock, Point hitPos, Pos posBefore);
-    abstract protected void handleEntityCollision(Entity hitEntity, Point hitPos, Pos posBefore);
-    abstract protected @NotNull Vec updateVelocity(@NotNull Pos entityPosition, @NotNull Vec currentVelocity, @NotNull Block.@NotNull Getter blockGetter, @NotNull Aerodynamics aerodynamics, boolean positionChanged, boolean entityFlying, boolean entityOnGround, boolean entityNoGravity);
+    /**
+     * Handle entity collision
+     * @param hitEntity the entity that was hit
+     * @param hitPos the position where the entity was hit
+     * @param posBefore the position before the collision
+     * @return true if block collisions should be ignored
+     */
+    protected abstract boolean handleEntityCollision(EntityCollisionResult hitEntity, Point hitPos, Pos posBefore);
+
+    protected abstract void handleBlockCollision(Block hitBlock, Point hitPos, Pos posBefore);
+
+    protected abstract @NotNull Vec updateVelocity(@NotNull Pos entityPosition, @NotNull Vec currentVelocity, @NotNull Block.@NotNull Getter blockGetter, @NotNull Aerodynamics aerodynamics, boolean positionChanged, boolean entityFlying, boolean entityOnGround, boolean entityNoGravity);
 }

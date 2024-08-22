@@ -10,9 +10,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.coordinate.Pos;
-import net.minestom.server.entity.EntityType;
-import net.minestom.server.entity.GameMode;
-import net.minestom.server.entity.Player;
+import net.minestom.server.entity.*;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.*;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
@@ -44,6 +42,9 @@ public class Main {
         lobby.setGenerator(unit -> unit.modifier().fillHeight(0, 1, Block.STONE));
         lobby.setTimeRate(0);
         instanceManager.registerInstance(lobby);
+
+        Entity zombie = new LivingEntity(EntityType.ZOMBIE);
+        zombie.setInstance(lobby, new Pos(0.5, 16, 0.5));
 
         // Commands
         {

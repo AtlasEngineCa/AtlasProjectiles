@@ -4,6 +4,7 @@ import ca.atlasengine.projectiles.AbstractProjectile;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerFlag;
 import net.minestom.server.collision.Aerodynamics;
+import net.minestom.server.collision.EntityCollisionResult;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -11,11 +12,8 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.entity.EntityType;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityShootEvent;
-import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.block.BlockHandler;
-import net.minestom.server.network.packet.server.play.ParticlePacket;
-import net.minestom.server.particle.Particle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
@@ -31,12 +29,8 @@ public class ThrownItemProjectile extends AbstractProjectile {
     @Override
     public void tick(long time) {
         if (removed || inBlock) return;
-
-        final Pos posBefore = getPosition();
         updatePosition(time);
-        final Pos posNow = getPosition();
-
-        checkEntityCollision(posBefore, posNow);
+        callEntityCollision();
     }
 
     @Override
@@ -99,15 +93,17 @@ public class ThrownItemProjectile extends AbstractProjectile {
         // if the value is zero, it will be unlit. If the value is more than 0.01, there will be noticeable pitch change visually
         position = new Pos(hitPos.x(), hitPos.y(), hitPos.z(), posBefore.yaw(), posBefore.pitch());
         MinecraftServer.getSchedulerManager().scheduleNextTick(this::synchronizePosition); // required as in rare situations there will be a slight disagreement with the client and server on if it hit or not | also scheduling next tick so it doesn't jump to the hit position until it has actually hit
+
+        callBlockCollisionEvent(Pos.fromPoint(hitPos), hitBlock);
+
         BlockHandler blockHandler = hitBlock.handler();
         if (blockHandler == null) return;
         blockHandler.onTouch(new BlockHandler.Touch(hitBlock, instance, hitPos, this));
     }
 
     @Override
-    protected void handleEntityCollision(Entity hitEntity, Point hitPos, Pos posBefore) {
-        ProjectileCollideWithEntityEvent e = new ProjectileCollideWithEntityEvent(this, Pos.fromPoint(hitPos), hitEntity);
-        MinecraftServer.getGlobalEventHandler().call(e);
+    protected boolean handleEntityCollision(EntityCollisionResult result, Point hitPos, Pos posBefore) {
+        return callEntityCollisionEvent(Pos.fromPoint(hitPos), result.entity());
     }
 
     protected @NotNull Vec updateVelocity(@NotNull Pos entityPosition, @NotNull Vec currentVelocity, @NotNull Block.@NotNull Getter blockGetter, @NotNull Aerodynamics aerodynamics, boolean positionChanged, boolean entityFlying, boolean entityOnGround, boolean entityNoGravity) {
