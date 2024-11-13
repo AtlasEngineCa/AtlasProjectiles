@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractProjectile extends Entity implements Projectile {
     protected final Entity shooter;
     protected PhysicsResult previousPhysicsResult;
-    private Pos previousPosition;
+    protected Pos previousPosition;
 
     public AbstractProjectile(EntityType type, Entity shooter) {
         super(type);
@@ -75,16 +75,16 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         if (previousPhysicsResult.hasCollision()) {
             Block hitBlock = null;
             Point hitPoint = null;
-            if (previousPhysicsResult.collisionShapes()[0] instanceof ShapeImpl block) {
-                hitBlock = block.block();
+            if (previousPhysicsResult.collisionShapes()[0] instanceof ShapeImpl) {
+                hitBlock = instance.getBlock(previousPhysicsResult.collisionPoints()[0].sub(0, Vec.EPSILON, 0), Block.Getter.Condition.TYPE);
                 hitPoint = previousPhysicsResult.collisionPoints()[0];
             }
-            if (previousPhysicsResult.collisionShapes()[1] instanceof ShapeImpl block) {
-                hitBlock = block.block();
+            if (previousPhysicsResult.collisionShapes()[1] instanceof ShapeImpl) {
+                hitBlock = instance.getBlock(previousPhysicsResult.collisionPoints()[1].sub(0, Vec.EPSILON, 0), Block.Getter.Condition.TYPE);
                 hitPoint = previousPhysicsResult.collisionPoints()[1];
             }
-            if (previousPhysicsResult.collisionShapes()[2] instanceof ShapeImpl block) {
-                hitBlock = block.block();
+            if (previousPhysicsResult.collisionShapes()[2] instanceof ShapeImpl) {
+                hitBlock = instance.getBlock(previousPhysicsResult.collisionPoints()[2].sub(0, Vec.EPSILON, 0), Block.Getter.Condition.TYPE);
                 hitPoint = previousPhysicsResult.collisionPoints()[2];
             }
 

@@ -41,8 +41,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 
-    compileOnly("net.minestom:minestom-snapshots:a521c4e7cd")
-    testImplementation("net.minestom:minestom-snapshots:a521c4e7cd")
+    compileOnly("net.minestom:minestom-snapshots:f71ab6d851")
+    testImplementation("net.minestom:minestom-snapshots:f71ab6d851")
 }
 
 tasks.getByName<Test>("test") {
