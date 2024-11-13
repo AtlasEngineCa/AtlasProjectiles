@@ -48,7 +48,7 @@ public class ArrowProjectile extends AbstractProjectile {
     }
 
     private void setup() {
-        this.hasCollision = false;
+        this.collidesWithEntities = false;
         if (getEntityMeta() instanceof ProjectileMeta projectileMeta) {
             projectileMeta.setShooter(this.shooter);
         }
