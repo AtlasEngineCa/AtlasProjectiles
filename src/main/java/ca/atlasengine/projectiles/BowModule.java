@@ -5,8 +5,8 @@ import net.kyori.adventure.sound.Sound;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventNode;
-import net.minestom.server.event.item.ItemUpdateStateEvent;
-import net.minestom.server.event.player.PlayerItemAnimationEvent;
+import net.minestom.server.event.item.PlayerBeginItemUseEvent;
+import net.minestom.server.event.item.PlayerCancelItemUseEvent;
 import net.minestom.server.event.trait.EntityEvent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
@@ -23,11 +23,11 @@ public class BowModule {
     private static final Tag<Double> BOW_POWER = Tag.Double("bow_power").defaultValue(0.0);
 
     public BowModule(@NotNull EventNode<EntityEvent> node, BiFunction<Player, ItemStack, ? extends AbstractProjectile> arrowSupplier) {
-        node.addListener(PlayerItemAnimationEvent.class, event -> {
-            if (event.getItemAnimationType() != PlayerItemAnimationEvent.ItemAnimationType.BOW) return;
+        node.addListener(PlayerBeginItemUseEvent.class, event -> {
+            if (event.getItemStack().material() != Material.BOW) return;
             event.getPlayer().setTag(CHARGE_SINCE_TAG, System.currentTimeMillis());
         });
-        node.addListener(ItemUpdateStateEvent.class, event -> {
+        node.addListener(PlayerCancelItemUseEvent.class, event -> {
             if (event.getItemStack().material() != Material.BOW) return;
             Player player = event.getPlayer();
             long duration = System.currentTimeMillis()-player.getTag(CHARGE_SINCE_TAG);

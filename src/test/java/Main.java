@@ -1,8 +1,6 @@
 import ca.atlasengine.projectiles.BowModule;
 import ca.atlasengine.projectiles.entities.ArrowProjectile;
-import ca.atlasengine.projectiles.entities.FireballProjectile;
 import ca.atlasengine.projectiles.entities.FollowProjectile;
-import ca.atlasengine.projectiles.entities.ThrownItemProjectile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -68,8 +66,8 @@ public class Main {
                 final Player player = event.getPlayer();
 
                 var bow = ItemStack.builder(Material.BOW)
-                        .set(ItemComponent.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW)))
-                        .build();
+                                  .set(ItemComponent.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW)))
+                                  .build();
 
                 player.setItemInMainHand(bow);
 
@@ -84,7 +82,7 @@ public class Main {
                 ));
 
                 player.eventNode().addListener(PlayerUseItemEvent.class, e -> {
-                    if (e.getHand() != Player.Hand.MAIN) return;
+                    if (e.getHand() != PlayerHand.MAIN) return;
                     if (e.getItemStack().material() == Material.FIRE_CHARGE) {
                         new FollowProjectile(EntityType.SNOWBALL, e.getPlayer(), e.getPlayer(), 0.04f, 0.001f).shoot(e.getPlayer().getPosition().add(0, e.getPlayer().getEyeHeight(), 0).asVec(), 1, 1);
                     }
@@ -101,9 +99,9 @@ public class Main {
 
             // Chat
             handler.addListener(PlayerChatEvent.class, chatEvent -> {
-                chatEvent.setChatFormat((event) -> Component.text(event.getEntity().getUsername())
-                        .append(Component.text(" | ", NamedTextColor.DARK_GRAY)
-                                .append(Component.text(event.getMessage(), NamedTextColor.WHITE))));
+                chatEvent.setFormattedMessage(Component.text(chatEvent.getEntity().getUsername())
+                                                      .append(Component.text(" | ", NamedTextColor.DARK_GRAY)
+                                                                      .append(Component.text(chatEvent.getRawMessage(), NamedTextColor.WHITE))));
             });
 
             // Monitoring
@@ -120,13 +118,13 @@ public class Main {
                 final long ramUsage = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024;
 
                 final Component header = Component.newline()
-                        .append(Component.text("RAM USAGE: " + ramUsage + " MB", NamedTextColor.GRAY).append(Component.newline())
-                                .append(Component.text("TICK TIME: " + MathUtils.round(tickMonitor.getTickTime(), 2) + "ms", NamedTextColor.GRAY))).append(Component.newline());
+                                                 .append(Component.text("RAM USAGE: " + ramUsage + " MB", NamedTextColor.GRAY).append(Component.newline())
+                                                                 .append(Component.text("TICK TIME: " + MathUtils.round(tickMonitor.getTickTime(), 2) + "ms", NamedTextColor.GRAY))).append(Component.newline());
 
                 final Component footer = Component.newline()
-                        .append(Component.text("          Projectile Demo          ")
-                                .color(TextColor.color(57, 200, 73))
-                                .append(Component.newline()));
+                                                 .append(Component.text("          Projectile Demo          ")
+                                                                 .color(TextColor.color(57, 200, 73))
+                                                                 .append(Component.newline()));
 
                 Audiences.players().sendPlayerListHeaderAndFooter(header, footer);
             }, TaskSchedule.tick(10), TaskSchedule.tick(10));
