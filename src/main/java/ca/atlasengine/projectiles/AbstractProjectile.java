@@ -110,6 +110,10 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
     }
 
     protected boolean callEntityCollision() {
+        return callEntityCollision(boundingBox);
+    }
+
+    protected boolean callEntityCollision(BoundingBox boundingBox) {
         if (previousPhysicsResult == null) return false;
         var diff = previousPhysicsResult.newPosition().sub(previousPosition).asVec();
 
