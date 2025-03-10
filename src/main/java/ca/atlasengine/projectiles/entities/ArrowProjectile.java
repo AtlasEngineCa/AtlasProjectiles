@@ -1,11 +1,9 @@
 package ca.atlasengine.projectiles.entities;
 
 import ca.atlasengine.projectiles.AbstractProjectile;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerFlag;
 import net.minestom.server.collision.Aerodynamics;
 import net.minestom.server.collision.BoundingBox;
-import net.minestom.server.collision.EntityCollisionResult;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -16,7 +14,6 @@ import net.minestom.server.entity.metadata.projectile.ProjectileMeta;
 import net.minestom.server.event.EventDispatcher;
 import net.minestom.server.event.entity.EntityShootEvent;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.instance.block.BlockHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Random;
@@ -29,7 +26,6 @@ public class ArrowProjectile extends AbstractProjectile {
 
     private boolean critical = false;
     private boolean firstTick = true;
-    private boolean inBlock = false;
 
     public boolean isCritical() {
         return critical;
@@ -125,32 +121,6 @@ public class ArrowProjectile extends AbstractProjectile {
                 setVelocity(v);
             }
         });
-    }
-
-    @Override
-    protected void handleBlockCollision(Block hitBlock, Point hitPos, Pos posBefore) {
-        velocity = Vec.ZERO;
-        setNoGravity(true);
-
-        inBlock = true;
-        velocity = Vec.fromPoint(hitPos.sub(posBefore));
-
-        Vec v = velocity.normalize().mul(0.01f); // required so the entity is lit (just outside the block)
-
-        // if the value is zero, it will be unlit. If the value is more than 0.01, there will be noticeable pitch change visually
-        position = new Pos(hitPos.x()-v.x(), hitPos.y()-v.y(), hitPos.z()-v.z(), posBefore.yaw(), posBefore.pitch());
-        MinecraftServer.getSchedulerManager().scheduleNextTick(this::synchronizePosition); // required as in rare situations there will be a slight disagreement with the client and server on if it hit or not | also scheduling next tick so it doesn't jump to the hit position until it has actually hit
-
-        callBlockCollisionEvent(Pos.fromPoint(hitPos), hitBlock);
-
-        BlockHandler blockHandler = hitBlock.handler();
-        if (blockHandler == null) return;
-        blockHandler.onTouch(new BlockHandler.Touch(hitBlock, instance, hitPos, this));
-    }
-
-    @Override
-    protected boolean handleEntityCollision(EntityCollisionResult result, Point hitPos, Pos posBefore) {
-        return callEntityCollisionEvent(Pos.fromPoint(hitPos), result.entity());
     }
 
     protected @NotNull Vec updateVelocity(@NotNull Pos entityPosition, @NotNull Vec currentVelocity, @NotNull Block.@NotNull Getter blockGetter, @NotNull Aerodynamics aerodynamics, boolean positionChanged, boolean entityFlying, boolean entityOnGround, boolean entityNoGravity) {

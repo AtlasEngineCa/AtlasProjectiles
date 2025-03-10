@@ -1,5 +1,6 @@
 package ca.atlasengine.projectiles;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.ServerFlag;
 import net.minestom.server.collision.*;
 import net.minestom.server.coordinate.Point;
@@ -13,6 +14,7 @@ import net.minestom.server.event.entity.projectile.ProjectileCollideWithBlockEve
 import net.minestom.server.event.entity.projectile.ProjectileCollideWithEntityEvent;
 import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.block.Block;
+import net.minestom.server.instance.block.BlockHandler;
 import net.minestom.server.utils.chunk.ChunkCache;
 import net.minestom.server.utils.chunk.ChunkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -21,10 +23,21 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
     protected final Entity shooter;
     protected PhysicsResult previousPhysicsResult;
     protected Pos previousPosition;
+    protected boolean inBlock = false;
 
     public AbstractProjectile(EntityType type, Entity shooter) {
         super(type);
         this.shooter = shooter;
+    }
+
+    @Override
+    public void tick(long time) {
+        if (removed || inBlock) return;
+        updatePosition(time);
+
+        if (!callEntityCollision()) {
+            callBlockCollision();
+        }
     }
 
     @Override
@@ -140,16 +153,32 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         EventDispatcher.call(new EntityTickEvent(this));
     }
 
+    protected void handleBlockCollision(Block hitBlock, Point hitPos, Pos posBefore) {
+        velocity = Vec.ZERO;
+        setNoGravity(true);
+        inBlock = true;
+
+        // if the value is zero, it will be unlit. If the value is more than 0.01, there will be noticeable pitch change visually
+        position = new Pos(hitPos.x(), hitPos.y(), hitPos.z(), posBefore.yaw(), posBefore.pitch());
+        MinecraftServer.getSchedulerManager().scheduleNextTick(this::synchronizePosition); // required as in rare situations there will be a slight disagreement with the client and server on if it hit or not | also scheduling next tick so it doesn't jump to the hit position until it has actually hit
+
+        callBlockCollisionEvent(Pos.fromPoint(hitPos), hitBlock);
+
+        BlockHandler blockHandler = hitBlock.handler();
+        if (blockHandler == null) return;
+        blockHandler.onTouch(new BlockHandler.Touch(hitBlock, instance, hitPos, this));
+    }
+
     /**
      * Handle entity collision
-     * @param hitEntity the entity that was hit
+     * @param result the entity that was hit
      * @param hitPos the position where the entity was hit
      * @param posBefore the position before the collision
-     * @return true if block collisions should be ignored
+     * @return true if block collisions should be ignored (i.e. the entity was removed while handling entity collision during the same tick)
      */
-    protected abstract boolean handleEntityCollision(EntityCollisionResult hitEntity, Point hitPos, Pos posBefore);
-
-    protected abstract void handleBlockCollision(Block hitBlock, Point hitPos, Pos posBefore);
+    protected boolean handleEntityCollision(EntityCollisionResult result, Point hitPos, Pos posBefore) {
+        return callEntityCollisionEvent(Pos.fromPoint(hitPos), result.entity());
+    }
 
     protected abstract @NotNull Vec updateVelocity(@NotNull Pos entityPosition, @NotNull Vec currentVelocity, @NotNull Block.@NotNull Getter blockGetter, @NotNull Aerodynamics aerodynamics, boolean positionChanged, boolean entityFlying, boolean entityOnGround, boolean entityNoGravity);
 }
