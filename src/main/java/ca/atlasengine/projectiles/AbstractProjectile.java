@@ -66,7 +66,7 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         if (vehicle != null) return;
 
         this.previousPosition = position;
-        final Block.Getter chunkCache = new ChunkCache(instance, currentChunk, Block.STONE);
+        final Block.Getter chunkCache = new ChunkCache(instance, currentChunk);
         PhysicsResult result = computePhysics(
                 position, velocity.div(ServerFlag.SERVER_TICKS_PER_SECOND),
                 chunkCache, getAerodynamics());
