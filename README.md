@@ -60,7 +60,7 @@ Add the following to your `build.gradle.kts` file:
 
 ```
 repositories {
-    maven("https://reposilite.worldseed.online/public")
+    maven("https://reposilite.atlasengine.ca/public")
 }
 ```
 
@@ -71,7 +71,7 @@ dependencies {
 }
 ```
 
-The lastest version number can be found [here](https://reposilite.worldseed.online/#/public/ca/atlasengine/atlas-projectiles)
+The lastest version number can be found [here](https://reposilite.atlasengine.ca/#/public/ca/atlasengine/atlas-projectiles)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
