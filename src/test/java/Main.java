@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.command.CommandManager;
+import net.minestom.server.component.DataComponents;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.*;
 import net.minestom.server.event.GlobalEventHandler;
@@ -17,7 +18,6 @@ import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
-import net.minestom.server.item.ItemComponent;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 import net.minestom.server.monitoring.TickMonitor;
@@ -66,7 +66,7 @@ public class Main {
                 final Player player = event.getPlayer();
 
                 var bow = ItemStack.builder(Material.BOW)
-                                  .set(ItemComponent.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW)))
+                                  .set(DataComponents.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW)))
                                   .build();
 
                 player.setItemInMainHand(bow);
