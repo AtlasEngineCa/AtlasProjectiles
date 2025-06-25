@@ -20,7 +20,7 @@ publishing {
     publications.create<MavenPublication>("maven") {
         groupId = "ca.atlasengine"
         artifactId = "atlas-projectiles"
-        version = "2.1.3"
+        version = "2.1.5"
 
         from(components["java"])
     }
@@ -41,8 +41,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 
-    compileOnly("net.minestom:minestom-snapshots:1_21_5-2398778b46")
-    testImplementation("net.minestom:minestom-snapshots:1_21_5-2398778b46")
+    compileOnly("net.minestom:minestom-snapshots:b39badc77b")
+    testImplementation("net.minestom:minestom-snapshots:b39badc77b")
 }
 
 tasks.getByName<Test>("test") {
