@@ -20,7 +20,7 @@ publishing {
     publications.create<MavenPublication>("maven") {
         groupId = "ca.atlasengine"
         artifactId = "atlas-projectiles"
-        version = "2.1.5"
+        version = "2.1.6"
 
         from(components["java"])
     }
