@@ -1,89 +1,88 @@
+# AtlasProjectiles
 
-<div id="top"></div>
+A small Minestom projectile library providing consistent launch, flight, and
+collision behavior through a focused API.
 
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![APACHE-2.0 License][license-shield]][license-url]
+Supported behaviors:
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/AtlasEngineCa/AtlasProjectiles">
-    <img src=".github/logo2.png" alt="Logo" width="180" height="180">
-  </a>
+- arrows: triangular launch uncertainty, air/water drag, `0.05` gravity, critical
+  metadata, block embedding, and 1,200-tick in-ground expiry;
+- thrown items: `0.03` gravity and air/water drag;
+- fireballs: directional acceleration and `0.95` inertia, both
+  configurable;
+- shulker bullets: axis-based path selection and steering;
+- configurable smooth homing projectiles;
+- bow charge handling and firing sound through `BowModule`.
 
-  <h3 align="center"></h3>
+The library owns projectile movement and collision detection. Game-specific hit
+effects such as damage, explosions, teleportation, potion effects, pickup rules,
+and enchantments belong in Minestom collision-event listeners.
 
-  <p align="center">
-    <br />
-    <br />
-    <br />
-    <a href="https://github.com/AtlasEngineCa/AtlasProjectiles/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/AtlasEngineCa/AtlasProjectiles/issues">Request Feature</a>
-  </p>
-</div>
+## Installation
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
-This is a library to add projectiles.
-Currently support projectiles:
-- Arrows
-- Fireballs
-- Items (snowball, enderpearl, etc)
-- Shulker Bullets
-
-The goal is to make the projectiles act similarly to vanilla, but not all projectiles will be identical.
-Contributions are welcome!
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-A full, runnable example server can be found [here](https://github.com/AtlasEngineCa/AtlasProjectiles/blob/main/src/test/java/Main.java)
-
-## Credits
-- [hapily04](https://github.com/hapily04) Initial bow and arrow projectile code
-
-### Adding as a dependency
-
-Add the following to your `build.gradle.kts` file:
-
-```
+```kotlin
 repositories {
     maven("https://reposilite.atlasengine.ca/public")
 }
-```
 
-Add the library as a dependency
-```
 dependencies {
-    implementation("ca.atlasengine:atlas-projectiles:<version>")
+    implementation("ca.atlasengine:atlas-projectiles:3.0.0")
 }
 ```
 
-The lastest version number can be found [here](https://reposilite.atlasengine.ca/#/public/ca/atlasengine/atlas-projectiles)
+Published versions are available from the
+[AtlasEngine repository](https://reposilite.atlasengine.ca/#/public/ca/atlasengine/atlas-projectiles).
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+## API
 
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/AtlasEngineCa/AtlasProjectiles.svg?style=for-the-badge
-[contributors-url]: https://github.com/AtlasEngineCa/AtlasProjectiles/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/AtlasEngineCa/AtlasProjectiles.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/AtlasEngineCa/AtlasProjectiles.svg?style=for-the-badge
-[stars-url]: https://github.com/AtlasEngineCa/AtlasProjectiles/stargazers
-[issues-shield]: https://img.shields.io/github/issues/AtlasEngineCa/AtlasProjectiles.svg?style=for-the-badge
-[issues-url]: https://github.com/AtlasEngineCa/AtlasProjectiles/issues
-[license-shield]: https://img.shields.io/github/license/AtlasEngineCa/AtlasProjectiles?style=for-the-badge
-[license-url]: https://github.com/AtlasEngineCa/AtlasProjectiles/blob/master/LICENSE
+`power` and `uncertainty` use the library's projectile units. A fully charged bow uses `3.0`
+power and `1.0` uncertainty. Minestom entity velocity remains in blocks per
+second.
+
+```java
+Point origin = player.getPosition().add(0.0, player.getEyeHeight() - 0.1, 0.0);
+
+// Shoot in the player's look direction and inherit player movement.
+var arrow = new ArrowProjectile(EntityType.ARROW, player);
+arrow.setCritical(true);
+arrow.shoot(origin, 3.0, 1.0);
+
+// Aim at an exact point without inheriting shooter movement.
+var snowball = new ThrownItemProjectile(EntityType.SNOWBALL, player);
+snowball.shoot(origin, target.getPosition(), 1.5, 1.0);
+
+// Apply an upward pitch offset.
+var potion = new ThrownItemProjectile(EntityType.SPLASH_POTION, player);
+potion.shootFromRotation(origin, -20.0f, 0.5, 1.0);
+
+// A shulker bullet begins at rest and selects its own route.
+var bullet = new ShulkerBulletProjectile(EntityType.SHULKER_BULLET, player, target);
+bullet.spawn(origin);
+```
+
+Install bow behavior on any entity event node:
+
+```java
+new BowModule(player.eventNode(),
+        (shooter, bow) -> new ArrowProjectile(EntityType.ARROW, shooter));
+```
+
+Listen for `ProjectileCollideWithEntityEvent` and
+`ProjectileCollideWithBlockEvent` to implement hit effects. Cancelling either
+event allows the projectile to continue. By default, thrown items, fireballs,
+and homing projectiles are removed on impact; arrows embed in blocks.
+
+The runnable server example is in
+[`src/test/java/Main.java`](src/test/java/Main.java).
+
+## Building
+
+Java 25 is required.
+
+```shell
+./gradlew test javadoc
+```
+
+## License
+
+Apache-2.0. See [`LICENSE`](LICENSE).

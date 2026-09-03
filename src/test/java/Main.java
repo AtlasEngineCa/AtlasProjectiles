@@ -1,13 +1,12 @@
 import ca.atlasengine.projectiles.BowModule;
 import ca.atlasengine.projectiles.entities.ArrowProjectile;
-import ca.atlasengine.projectiles.entities.FollowProjectile;
+import ca.atlasengine.projectiles.entities.ShulkerBulletProjectile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.audience.Audiences;
 import net.minestom.server.command.CommandManager;
-import net.minestom.server.component.DataComponents;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.*;
 import net.minestom.server.event.GlobalEventHandler;
@@ -26,7 +25,6 @@ import net.minestom.server.utils.MathUtils;
 import net.minestom.server.world.DimensionType;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -65,11 +63,7 @@ public class Main {
                 if (!event.isFirstSpawn()) return;
                 final Player player = event.getPlayer();
 
-                var bow = ItemStack.builder(Material.BOW)
-                                  .set(DataComponents.CHARGED_PROJECTILES, List.of(ItemStack.of(Material.ARROW)))
-                                  .build();
-
-                player.setItemInMainHand(bow);
+                player.setItemInMainHand(ItemStack.of(Material.BOW));
 
                 player.setGameMode(GameMode.CREATIVE);
                 player.setEnableRespawnScreen(false);
@@ -84,7 +78,8 @@ public class Main {
                 player.eventNode().addListener(PlayerUseItemEvent.class, e -> {
                     if (e.getHand() != PlayerHand.MAIN) return;
                     if (e.getItemStack().material() == Material.FIRE_CHARGE) {
-                        new FollowProjectile(EntityType.SNOWBALL, e.getPlayer(), e.getPlayer(), 0.04f, 0.001f).shoot(e.getPlayer().getPosition().add(0, e.getPlayer().getEyeHeight(), 0).asVec(), 1, 1);
+                        var bullet = new ShulkerBulletProjectile(EntityType.SHULKER_BULLET, e.getPlayer(), zombie);
+                        bullet.spawn(e.getPlayer().getPosition().add(0.0, e.getPlayer().getEyeHeight(), 0.0));
                     }
                 });
 
