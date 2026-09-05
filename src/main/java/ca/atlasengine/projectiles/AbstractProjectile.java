@@ -134,7 +134,7 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         }
 
         Vec velocity = movement.mul(ServerFlag.SERVER_TICKS_PER_SECOND);
-        Pos spawnPosition = new Pos(from.x(), from.y(), from.z()).withDirection(movement);
+        Pos spawnPosition = withProjectileView(movement, from);
         setInstance(instance, spawnPosition).whenComplete((ignored, throwable) -> {
             if (throwable != null) {
                 remove();
@@ -232,9 +232,13 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
 
     private void updateProjectileRotation(Vec movement) {
         if (movement.isZero()) return;
+        position = withProjectileView(movement, position);
+    }
+
+    private static Pos withProjectileView(Vec movement, Point position) {
         float yaw = (float) Math.toDegrees(Math.atan2(movement.x(), movement.z()));
         float pitch = (float) Math.toDegrees(Math.atan2(movement.y(), Math.hypot(movement.x(), movement.z())));
-        position = position.withView(yaw, pitch);
+        return new Pos(position.x(), position.y(), position.z(), yaw, pitch);
     }
 
     private void callBlockCollision() {
