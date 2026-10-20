@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "ca.atlasengine"
-version = "3.0.0"
+version = "3.0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -65,8 +65,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.0.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.2")
 
-    compileOnly("net.minestom:minestom:2026.01.01-1.21.11")
-    testImplementation("net.minestom:minestom:2026.01.01-1.21.11")
+    compileOnly("net.minestom:minestom:2026.10.07-26.2")
+    testImplementation("net.minestom:minestom:2026.10.07-26.2")
 }
 
 tasks.getByName<Test>("test") {

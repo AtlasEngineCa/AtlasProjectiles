@@ -78,7 +78,7 @@ public final class ShulkerBulletProjectile extends AbstractProjectile {
         if (currentDirection == null) return false;
 
         Point nextBlock = getPosition().add(currentDirection.vec());
-        if (!getInstance().getBlock(nextBlock).isAir()) return true;
+        if (!getInstance().getBlock(nextBlock).air()) return true;
 
         int currentX = getPosition().blockX();
         int currentY = getPosition().blockY();
@@ -108,9 +108,9 @@ public final class ShulkerBulletProjectile extends AbstractProjectile {
                 targetY + targetHeightOffset,
                 targetZ + 0.5
         );
-        Vec toTarget = targetPoint.sub(getPosition()).asVec();
+        Vec toTarget = targetPoint.sub(getPosition());
         Vec targetBlockCenter = new Vec(targetX + 0.5, targetY + 0.5, targetZ + 0.5);
-        if (targetBlockCenter.sub(getPosition()).asVec().lengthSquared() < 4.0) {
+        if (targetBlockCenter.sub(getPosition()).lengthSquared() < 4.0) {
             currentDirection = null;
             targetVelocity = toTarget.isZero() ? Vec.ZERO : toTarget.normalize().mul(TARGET_SPEED);
             flightSteps = 10 + ThreadLocalRandom.current().nextInt(5) * 10;
@@ -125,7 +125,7 @@ public final class ShulkerBulletProjectile extends AbstractProjectile {
         if (choices.isEmpty()) {
             List<Direction> openDirections = new ArrayList<>(6);
             for (Direction direction : Direction.values()) {
-                if (getInstance().getBlock(getPosition().add(direction.vec())).isAir()) {
+                if (getInstance().getBlock(getPosition().add(direction.vec())).air()) {
                     openDirections.add(direction);
                 }
             }
@@ -137,7 +137,7 @@ public final class ShulkerBulletProjectile extends AbstractProjectile {
                 : choices.get(ThreadLocalRandom.current().nextInt(choices.size()));
 
         Vec destination = getPosition().add(currentDirection.vec()).asVec();
-        Vec delta = destination.sub(getPosition()).asVec();
+        Vec delta = destination.sub(getPosition());
         targetVelocity = delta.isZero() ? Vec.ZERO : delta.normalize().mul(TARGET_SPEED);
         flightSteps = 10 + ThreadLocalRandom.current().nextInt(5) * 10;
     }
@@ -146,7 +146,7 @@ public final class ShulkerBulletProjectile extends AbstractProjectile {
                            int current, int destination, Direction negative, Direction positive) {
         if (avoidedAxis == axis || current == destination) return;
         Direction direction = current < destination ? positive : negative;
-        if (getInstance().getBlock(getPosition().add(direction.vec())).isAir()) {
+        if (getInstance().getBlock(getPosition().add(direction.vec())).air()) {
             choices.add(direction);
         }
     }

@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation("ca.atlasengine:atlas-projectiles:3.0.0")
+    implementation("ca.atlasengine:atlas-projectiles:3.0.1")
 }
 ```
 
