@@ -36,7 +36,7 @@ public class Main {
         lobby.setChunkSupplier(LightingChunk::new);
         lobby.enableAutoChunkLoad(true);
         lobby.setGenerator(unit -> unit.modifier().fillHeight(0, 1, Block.STONE));
-        lobby.setTimeRate(0);
+        lobby.defaultClock().pause();
         instanceManager.registerInstance(lobby);
 
         Entity zombie = new LivingEntity(EntityType.ZOMBIE);

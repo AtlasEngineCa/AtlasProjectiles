@@ -1,6 +1,6 @@
 package ca.atlasengine.projectiles;
 
-import net.minestom.server.ServerFlag;
+import net.minestom.server.property.ServerProperties;
 import net.minestom.server.collision.*;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.coordinate.Pos;
@@ -129,11 +129,11 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
 
         Vec movement = getMovementToShoot(direction, event.getPower(), event.getSpread());
         if (inheritShooterVelocity) {
-            Vec shooterMovement = shooter.getVelocity().div(ServerFlag.SERVER_TICKS_PER_SECOND);
+            Vec shooterMovement = shooter.getVelocity().div(ServerProperties.SERVER_TICKS_PER_SECOND.get());
             movement = movement.add(shooterMovement.x(), shooter.isOnGround() ? 0.0 : shooterMovement.y(), shooterMovement.z());
         }
 
-        Vec velocity = movement.mul(ServerFlag.SERVER_TICKS_PER_SECOND);
+        Vec velocity = movement.mul(ServerProperties.SERVER_TICKS_PER_SECOND.get());
         Pos spawnPosition = withProjectileView(movement, from);
         setInstance(instance, spawnPosition).whenComplete((ignored, throwable) -> {
             if (throwable != null) {
@@ -172,7 +172,7 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
         if (vehicle != null) return;
 
         this.tickStartPosition = position;
-        Vec currentMovement = velocity.div(ServerFlag.SERVER_TICKS_PER_SECOND);
+        Vec currentMovement = velocity.div(ServerProperties.SERVER_TICKS_PER_SECOND.get());
         this.tickMovement = beforeMovement(currentMovement);
 
         final Block.Getter chunkCache = new ChunkCache(instance, currentChunk, Block.STONE);
@@ -188,7 +188,7 @@ public abstract class AbstractProjectile extends Entity implements Projectile {
 
         this.projectilePhysicsResult = result;
         onGround = result.isOnGround();
-        velocity = afterMovement(tickMovement).mul(ServerFlag.SERVER_TICKS_PER_SECOND);
+        velocity = afterMovement(tickMovement).mul(ServerProperties.SERVER_TICKS_PER_SECOND.get());
         refreshPosition(result.newPosition(), true, false);
         updateProjectileRotation(tickMovement);
     }
